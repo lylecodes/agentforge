@@ -28,6 +28,7 @@ import { Tool } from './tool.js';
 import { Prompt } from './prompt.js';
 import type { MCPServer } from './mcp-server.js';
 import type { Memory } from './memory.js';
+import type { Schema } from './schema.js';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,12 @@ export interface AgentProps {
 
   /** Memory backend for persisting conversational context. */
   readonly memory?: Memory;
+
+  /** Schema defining the expected output structure. */
+  readonly outputSchema?: Schema;
+
+  /** Schema defining the expected input structure. */
+  readonly inputSchema?: Schema;
 
   /** Arbitrary configuration overrides passed through to the runtime. */
   readonly config?: Record<string, unknown>;
@@ -102,6 +109,12 @@ export class Agent extends AgentResourceBase {
   /** Optional memory backend. Use {@link addMemory} to set after construction. */
   private _memory?: Memory;
 
+  /** Optional output schema. Use {@link setOutputSchema} to set after construction. */
+  private _outputSchema?: Schema;
+
+  /** Optional input schema. Use {@link setInputSchema} to set after construction. */
+  private _inputSchema?: Schema;
+
   /** Runtime configuration overrides. */
   public readonly config?: Record<string, unknown>;
 
@@ -114,6 +127,8 @@ export class Agent extends AgentResourceBase {
     this._tools = [...(props.tools ?? [])];
     this._mcpServers = [...(props.mcpServers ?? [])];
     this._memory = props.memory;
+    this._outputSchema = props.outputSchema;
+    this._inputSchema = props.inputSchema;
     this.config = props.config;
 
     // Auto-create a Prompt child construct if a plain string was provided.
@@ -141,6 +156,12 @@ export class Agent extends AgentResourceBase {
     if (this._memory) {
       this.node.addDependency(this._memory);
     }
+    if (this._outputSchema) {
+      this.node.addDependency(this._outputSchema);
+    }
+    if (this._inputSchema) {
+      this.node.addDependency(this._inputSchema);
+    }
   }
 
   // ─── Public Accessors ───────────────────────────────────────────────────
@@ -160,6 +181,16 @@ export class Agent extends AgentResourceBase {
     return this._memory;
   }
 
+  /** The output schema, if configured. */
+  get outputSchema(): Schema | undefined {
+    return this._outputSchema;
+  }
+
+  /** The input schema, if configured. */
+  get inputSchema(): Schema | undefined {
+    return this._inputSchema;
+  }
+
   // ─── Mutation Methods ───────────────────────────────────────────────────
 
   /**
@@ -170,6 +201,26 @@ export class Agent extends AgentResourceBase {
   addMemory(memory: Memory): void {
     this._memory = memory;
     this.node.addDependency(memory);
+  }
+
+  /**
+   * Set the output schema for this agent.
+   *
+   * @param schema - The schema construct defining the output structure.
+   */
+  setOutputSchema(schema: Schema): void {
+    this._outputSchema = schema;
+    this.node.addDependency(schema);
+  }
+
+  /**
+   * Set the input schema for this agent.
+   *
+   * @param schema - The schema construct defining the input structure.
+   */
+  setInputSchema(schema: Schema): void {
+    this._inputSchema = schema;
+    this.node.addDependency(schema);
   }
 
   /**
@@ -222,6 +273,14 @@ export class Agent extends AgentResourceBase {
 
     if (this._memory !== undefined) {
       props.memory = this._memory.node.path;
+    }
+
+    if (this._outputSchema !== undefined) {
+      props.outputSchema = this._outputSchema.node.path;
+    }
+
+    if (this._inputSchema !== undefined) {
+      props.inputSchema = this._inputSchema.node.path;
     }
 
     if (this.config !== undefined && Object.keys(this.config).length > 0) {

@@ -6,6 +6,7 @@ import { Tool } from '../tool.js';
 import { Prompt } from '../prompt.js';
 import { MCPServer } from '../mcp-server.js';
 import { Memory, MemoryType } from '../memory.js';
+import { Schema, SchemaFormat } from '../schema.js';
 
 /**
  * Helper: create a fresh App + Stack for each test.
@@ -421,6 +422,91 @@ describe('Agent', () => {
       const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
       const agent = new Agent(stack, 'A', { name: 'bot', model });
       expect(agent.memory).toBeUndefined();
+    });
+  });
+
+  // ─── Schema ────────────────────────────────────────────────────────────────
+
+  describe('schema', () => {
+    it('sets output schema via constructor', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const schema = new Schema(stack, 'Out', {
+        format: SchemaFormat.JSON_SCHEMA,
+        definition: { type: 'object', properties: { result: { type: 'string' } } },
+      });
+      const agent = new Agent(stack, 'A', { name: 'bot', model, outputSchema: schema });
+      const assembly = agent.toAssemblyResource();
+      expect(assembly.properties.outputSchema).toBe('App/TestStack/Out');
+      const deps = agent.node.dependencies;
+      expect(deps.map((d) => d.node.path)).toContain(schema.node.path);
+    });
+
+    it('sets output schema via setOutputSchema()', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const agent = new Agent(stack, 'A', { name: 'bot', model });
+      const schema = new Schema(stack, 'Out', {
+        format: SchemaFormat.JSON_SCHEMA,
+        definition: { type: 'object' },
+      });
+      agent.setOutputSchema(schema);
+      const assembly = agent.toAssemblyResource();
+      expect(assembly.properties.outputSchema).toBe('App/TestStack/Out');
+    });
+
+    it('sets input schema via constructor', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const schema = new Schema(stack, 'In', {
+        format: SchemaFormat.JSON_SCHEMA,
+        definition: { type: 'object' },
+      });
+      const agent = new Agent(stack, 'A', { name: 'bot', model, inputSchema: schema });
+      const assembly = agent.toAssemblyResource();
+      expect(assembly.properties.inputSchema).toBe('App/TestStack/In');
+    });
+
+    it('sets input schema via setInputSchema()', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const agent = new Agent(stack, 'A', { name: 'bot', model });
+      const schema = new Schema(stack, 'In', {
+        format: SchemaFormat.JSON_SCHEMA,
+        definition: { type: 'object' },
+      });
+      agent.setInputSchema(schema);
+      const assembly = agent.toAssemblyResource();
+      expect(assembly.properties.inputSchema).toBe('App/TestStack/In');
+    });
+
+    it('exposes schemas via getters', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const outSchema = new Schema(stack, 'Out', {
+        format: SchemaFormat.JSON_SCHEMA,
+        definition: { type: 'object' },
+      });
+      const inSchema = new Schema(stack, 'In', {
+        format: SchemaFormat.JSON_SCHEMA,
+        definition: { type: 'object' },
+      });
+      const agent = new Agent(stack, 'A', {
+        name: 'bot',
+        model,
+        outputSchema: outSchema,
+        inputSchema: inSchema,
+      });
+      expect(agent.outputSchema).toBe(outSchema);
+      expect(agent.inputSchema).toBe(inSchema);
+    });
+
+    it('schemas are undefined when not set', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const agent = new Agent(stack, 'A', { name: 'bot', model });
+      expect(agent.outputSchema).toBeUndefined();
+      expect(agent.inputSchema).toBeUndefined();
     });
   });
 
