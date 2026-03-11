@@ -23,3 +23,15 @@ export type {
   Route,
   ContextTransferConfig,
 } from './types.js';
+
+export { Workflow } from './workflow.js';
+export type { WorkflowProps } from './workflow.js';
+
+export { Team } from './team.js';
+export type { TeamProps } from './team.js';
+
+export { Router } from './router.js';
+export type { RouterProps } from './router.js';
+
+export { Handoff } from './handoff.js';
+export type { HandoffProps } from './handoff.js';
