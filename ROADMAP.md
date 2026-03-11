@@ -9,7 +9,7 @@ Full technical architecture: [roadmap-v2.md](../research/agents-as-code/roadmap-
 ## Status
 
 - [x] Phase 1 — Foundation + Core + Local Target
-- [ ] Phase 2 — Docker Target + Protocol Artifacts
+- [x] Phase 2 — Docker Target + Protocol Artifacts
 - [ ] Phase 3 — Composition
 - [ ] Phase 4 — Governance + Full State
 - [ ] Phase 5 — Data + Integration
@@ -35,29 +35,17 @@ Full technical architecture: [roadmap-v2.md](../research/agents-as-code/roadmap-
 
 ---
 
-## Phase 2: Docker Target + Protocol Artifacts
+## Phase 2: Docker Target + Protocol Artifacts [COMPLETE]
 
-Same agent definition deploys to Docker. Protocol artifacts make agents discoverable. Memory and Schema enable richer capabilities.
+6 packages, 691 tests. Same agent definition compiles to local + Docker.
 
-- [ ] **DockerTarget** (`@agentforge/target-docker`)
-  - [ ] Multi-stage Dockerfile generation
-  - [ ] docker-compose.yml with service definitions + MCP sidecars
-  - [ ] SecretRef -> environment variable mapping + `.env.example`
-  - [ ] Volume mounts for persistent data
-  - [ ] Health check endpoints
-  - [ ] `agentforge deploy --target docker` runs `docker compose up -d`
-- [ ] **A2A Agent Card generation** — JSON card from agent definitions during build
-- [ ] **Agent Skills manifest generation** — Anthropic protocol artifact
-- [ ] **Memory construct** (`@agentforge/core`)
-  - [ ] Types: conversation buffer, summary, entity extraction
-  - [ ] Backends: sqlite, redis, postgres
-  - [ ] Attach to agents via `agent.addMemory()`
-- [ ] **Schema construct** (`@agentforge/core`)
-  - [ ] Typed data contracts for agent input/output
-  - [ ] Zod-based definitions, JSON Schema serialization
-  - [ ] Cross-agent schema compatibility validation in workflows
-
-**Demo:** Same agent definition → `agentforge deploy --target local` AND `agentforge deploy --target docker`. Two targets, one definition.
+- [x] **DockerTarget** (`@agentforge/target-docker`) — Dockerfile, docker-compose.yml, HTTP runtime, MCP sidecars, .env.example
+- [x] **A2A Agent Card generation** — full implementation with skills, inputSchema, provider info
+- [x] **Agent Skills manifest generation** — full implementation with tool schemas, deduplication
+- [x] **Memory construct** — 4 types (conversation, summary, entity, buffer), 3 backends, `agent.addMemory()`
+- [x] **Schema construct** — JSON Schema + Zod support, `agent.setOutputSchema()`, `agent.setInputSchema()`
+- [x] **ITargetCompiler extracted** to `@agentforge/constructs` for target-agnostic sharing
+- [x] **defineAgent()** updated with memory option
 
 ---
 
