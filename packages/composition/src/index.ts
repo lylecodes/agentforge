@@ -9,4 +9,17 @@
  * - {@link Handoff} — agent-to-agent or agent-to-human transfer
  */
 
-// Exports will be added as constructs are implemented.
+export {
+  TeamOrchestration,
+  RoutingStrategy,
+  HandoffTarget,
+  HandoffTrigger,
+} from './types.js';
+
+export type {
+  WorkflowErrorHandling,
+  WorkflowStep,
+  TeamMember,
+  Route,
+  ContextTransferConfig,
+} from './types.js';
