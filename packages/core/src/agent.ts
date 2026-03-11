@@ -27,6 +27,7 @@ import { Model } from './model.js';
 import { Tool } from './tool.js';
 import { Prompt } from './prompt.js';
 import type { MCPServer } from './mcp-server.js';
+import type { Memory } from './memory.js';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,9 @@ export interface AgentProps {
 
   /** MCP servers this agent connects to. */
   readonly mcpServers?: MCPServer[];
+
+  /** Memory backend for persisting conversational context. */
+  readonly memory?: Memory;
 
   /** Arbitrary configuration overrides passed through to the runtime. */
   readonly config?: Record<string, unknown>;
@@ -95,6 +99,9 @@ export class Agent extends AgentResourceBase {
   /** Mutable list of MCP servers. Use {@link addMCPServer} to append. */
   private readonly _mcpServers: MCPServer[];
 
+  /** Optional memory backend. Use {@link addMemory} to set after construction. */
+  private _memory?: Memory;
+
   /** Runtime configuration overrides. */
   public readonly config?: Record<string, unknown>;
 
@@ -106,6 +113,7 @@ export class Agent extends AgentResourceBase {
     this.model = props.model;
     this._tools = [...(props.tools ?? [])];
     this._mcpServers = [...(props.mcpServers ?? [])];
+    this._memory = props.memory;
     this.config = props.config;
 
     // Auto-create a Prompt child construct if a plain string was provided.
@@ -130,6 +138,9 @@ export class Agent extends AgentResourceBase {
     for (const server of this._mcpServers) {
       this.node.addDependency(server);
     }
+    if (this._memory) {
+      this.node.addDependency(this._memory);
+    }
   }
 
   // ─── Public Accessors ───────────────────────────────────────────────────
@@ -144,7 +155,22 @@ export class Agent extends AgentResourceBase {
     return this._mcpServers;
   }
 
+  /** The memory backend, if configured. */
+  get memory(): Memory | undefined {
+    return this._memory;
+  }
+
   // ─── Mutation Methods ───────────────────────────────────────────────────
+
+  /**
+   * Attach a memory backend to this agent.
+   *
+   * @param memory - The memory construct to attach.
+   */
+  addMemory(memory: Memory): void {
+    this._memory = memory;
+    this.node.addDependency(memory);
+  }
 
   /**
    * Add a tool to this agent after construction.
@@ -192,6 +218,10 @@ export class Agent extends AgentResourceBase {
 
     if (this._mcpServers.length > 0) {
       props.mcpServers = this._mcpServers.map((s) => s.node.path);
+    }
+
+    if (this._memory !== undefined) {
+      props.memory = this._memory.node.path;
     }
 
     if (this.config !== undefined && Object.keys(this.config).length > 0) {

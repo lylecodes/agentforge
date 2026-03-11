@@ -5,6 +5,7 @@ import { Model } from '../model.js';
 import { Tool } from '../tool.js';
 import { Prompt } from '../prompt.js';
 import { MCPServer } from '../mcp-server.js';
+import { Memory, MemoryType } from '../memory.js';
 
 /**
  * Helper: create a fresh App + Stack for each test.
@@ -380,6 +381,46 @@ describe('Agent', () => {
       });
 
       expect(agent.config).toBeUndefined();
+    });
+  });
+
+  // ─── Memory ─────────────────────────────────────────────────────────────────
+
+  describe('memory', () => {
+    it('attaches memory via constructor', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const memory = new Memory(stack, 'Mem', { type: MemoryType.CONVERSATION, backend: 'sqlite' });
+      const agent = new Agent(stack, 'A', { name: 'bot', model, memory });
+      const assembly = agent.toAssemblyResource();
+      expect(assembly.properties.memory).toBe('App/TestStack/Mem');
+      const deps = agent.node.dependencies;
+      expect(deps.map((d) => d.node.path)).toContain(memory.node.path);
+    });
+
+    it('attaches memory via addMemory()', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const agent = new Agent(stack, 'A', { name: 'bot', model });
+      const memory = new Memory(stack, 'Mem', { type: MemoryType.SUMMARY, backend: 'redis' });
+      agent.addMemory(memory);
+      const assembly = agent.toAssemblyResource();
+      expect(assembly.properties.memory).toBe('App/TestStack/Mem');
+    });
+
+    it('exposes memory via getter', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const memory = new Memory(stack, 'Mem', { type: MemoryType.CONVERSATION, backend: 'sqlite' });
+      const agent = new Agent(stack, 'A', { name: 'bot', model, memory });
+      expect(agent.memory).toBe(memory);
+    });
+
+    it('memory is undefined when not set', () => {
+      const stack = createStack();
+      const model = new Model(stack, 'M', { provider: 'anthropic', modelId: 'claude-sonnet-4' });
+      const agent = new Agent(stack, 'A', { name: 'bot', model });
+      expect(agent.memory).toBeUndefined();
     });
   });
 
