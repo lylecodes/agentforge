@@ -38,6 +38,7 @@ import { Model, type ModelProps } from './model.js';
 import { Tool, type ToolProps } from './tool.js';
 import { Prompt } from './prompt.js';
 import { MCPServer, type MCPServerProps } from './mcp-server.js';
+import { Memory, type MemoryProps } from './memory.js';
 import { Agent } from './agent.js';
 
 // ─── Shorthand tool definition ──────────────────────────────────────────────
@@ -96,6 +97,11 @@ export interface DefineAgentOptions {
    * MCP servers to connect to.
    */
   readonly mcpServers?: MCPServerProps[];
+
+  /**
+   * Memory backend configuration for persisting conversational context.
+   */
+  readonly memory?: MemoryProps;
 }
 
 // ─── Default API key env vars per provider ──────────────────────────────────
@@ -212,9 +218,17 @@ export function defineAgent(options: DefineAgentOptions): App {
     }
   }
 
+  // ─── Memory ──────────────────────────────────────────────────────────
+
+  let memory: Memory | undefined;
+
+  if (options.memory) {
+    memory = new Memory(stack, 'Memory', options.memory);
+  }
+
   // ─── Agent ────────────────────────────────────────────────────────────
 
-  new Agent(stack, 'Agent', {
+  const agent = new Agent(stack, 'Agent', {
     name: options.name,
     description: options.description,
     model,
@@ -222,6 +236,10 @@ export function defineAgent(options: DefineAgentOptions): App {
     prompt: options.prompt,
     mcpServers: mcpServers.length > 0 ? mcpServers : undefined,
   });
+
+  if (memory) {
+    agent.addMemory(memory);
+  }
 
   return app;
 }

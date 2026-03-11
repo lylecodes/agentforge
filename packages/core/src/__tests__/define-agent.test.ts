@@ -6,6 +6,7 @@ import { Model } from '../model.js';
 import { Tool } from '../tool.js';
 import { Prompt } from '../prompt.js';
 import { MCPServer } from '../mcp-server.js';
+import { Memory, MemoryType } from '../memory.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -322,6 +323,86 @@ describe('defineAgent', () => {
       expect(servers).toHaveLength(2);
       expect(servers[0].node.id).toBe('MCPServer0');
       expect(servers[1].node.id).toBe('MCPServer1');
+    });
+  });
+
+  // ─── Memory ─────────────────────────────────────────────────────────────────
+
+  describe('memory', () => {
+    it('creates a Memory construct when memory option is provided', () => {
+      const app = defineAgent({
+        name: 'researcher',
+        model: 'anthropic/claude-sonnet-4',
+        prompt: 'Hi.',
+        memory: {
+          type: MemoryType.CONVERSATION,
+          backend: 'sqlite',
+        },
+      });
+
+      const memories = findConstructsByType(app, Memory);
+      expect(memories).toHaveLength(1);
+      expect(memories[0].memoryType).toBe(MemoryType.CONVERSATION);
+      expect(memories[0].backend).toBe('sqlite');
+    });
+
+    it('attaches memory to the agent via addMemory', () => {
+      const app = defineAgent({
+        name: 'researcher',
+        model: 'anthropic/claude-sonnet-4',
+        prompt: 'Hi.',
+        memory: {
+          type: MemoryType.SUMMARY,
+          backend: 'redis',
+          maxTokens: 4096,
+        },
+      });
+
+      const agents = findConstructsByType(app, Agent);
+      expect(agents[0].memory).toBeDefined();
+      expect(agents[0].memory).toBeInstanceOf(Memory);
+      expect(agents[0].memory!.memoryType).toBe(MemoryType.SUMMARY);
+      expect(agents[0].memory!.backend).toBe('redis');
+      expect(agents[0].memory!.maxTokens).toBe(4096);
+    });
+
+    it('does not create Memory when memory option is omitted', () => {
+      const app = defineAgent({
+        name: 'researcher',
+        model: 'anthropic/claude-sonnet-4',
+        prompt: 'Hi.',
+      });
+
+      const memories = findConstructsByType(app, Memory);
+      expect(memories).toHaveLength(0);
+
+      const agents = findConstructsByType(app, Agent);
+      expect(agents[0].memory).toBeUndefined();
+    });
+
+    it('memory appears in assembly output', () => {
+      const app = defineAgent({
+        name: 'memory-agent',
+        model: 'anthropic/claude-sonnet-4',
+        prompt: 'Hi.',
+        memory: {
+          type: MemoryType.BUFFER,
+          backend: 'postgres',
+          maxTokens: 2048,
+          config: { connectionString: 'postgres://localhost:5432/db' },
+        },
+      });
+
+      const result = app.build({ writeOutput: false, throwOnError: false });
+      const assembly = result.stacks['MemoryAgent'];
+      const resourceTypes = Object.values(assembly.resources).map((r) => r.type);
+      expect(resourceTypes).toContain('agentforge::core::Memory');
+
+      // The agent resource should reference the memory
+      const agentRes = Object.values(assembly.resources).find(
+        (r) => r.type === 'agentforge::core::Agent',
+      )!;
+      expect(agentRes.properties['memory']).toBeDefined();
     });
   });
 
