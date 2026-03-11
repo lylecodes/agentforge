@@ -105,12 +105,18 @@ export interface A2AAgentCard {
   readonly capabilities: {
     readonly streaming: boolean;
     readonly pushNotifications: boolean;
+    readonly stateTransitionHistory: boolean;
   };
   readonly skills: Array<{
     readonly id: string;
     readonly name: string;
     readonly description: string;
+    readonly inputSchema?: Record<string, unknown>;
   }>;
+  readonly provider?: {
+    readonly organization: string;
+    readonly model: string;
+  };
   readonly authentication?: {
     readonly schemes: string[];
   };
@@ -119,8 +125,11 @@ export interface A2AAgentCard {
 /**
  * Generate an A2A Agent Card JSON from agent resources.
  *
- * **Phase 2 stub** — returns a basic card structure. Full implementation
- * will extract capabilities, skills, and authentication from the assembly.
+ * Extracts capabilities, skills (from Tool resources), and provider info
+ * (from Model resources) to build a complete A2A-protocol-compatible card.
+ *
+ * For single-agent assemblies, tools are listed as skills.
+ * For multi-agent assemblies, each agent is listed as a skill.
  *
  * @param resources - All resources in the assembly.
  * @returns The A2A Agent Card as a JSON string, or `null` if no agents found.
@@ -131,32 +140,59 @@ export function generateA2AAgentCard(
   const agents = Object.values(resources).filter(
     (r) => r.type === 'agentforge::core::Agent',
   );
+  if (agents.length === 0) return null;
 
-  if (agents.length === 0) {
-    return null;
-  }
+  const primaryAgent = agents[0]!;
+  const tools = Object.values(resources).filter(
+    (r) => r.type === 'agentforge::core::Tool',
+  );
 
-  // Use the first agent for the card (multi-agent cards TBD in Phase 2)
-  const agent = agents[0]!;
-  const name = (agent.properties['name'] as string) ?? agent.displayName;
-  const description = (agent.properties['description'] as string) ?? '';
+  // Build skills from tools
+  const toolSkills = tools.map((tool) => {
+    const skill: Record<string, unknown> = {
+      id: (tool.properties['name'] as string) ?? tool.displayName,
+      name: (tool.properties['name'] as string) ?? tool.displayName,
+    };
+    if (tool.properties['description']) {
+      skill['description'] = tool.properties['description'];
+    }
+    if (tool.properties['inputSchema']) {
+      skill['inputSchema'] = tool.properties['inputSchema'];
+    }
+    return skill;
+  });
 
-  const tools = resolveToolNames(agent, resources);
+  // For multi-agent: also list each agent as a skill
+  const agentSkills = agents.map((agent) => ({
+    id: (agent.properties['name'] as string) ?? agent.displayName,
+    name: (agent.properties['name'] as string) ?? agent.displayName,
+    description: (agent.properties['description'] as string) ?? '',
+  }));
 
-  const card: A2AAgentCard = {
-    name,
-    description,
+  const skills = agents.length > 1 ? agentSkills : toolSkills;
+
+  // Resolve model info for provider field
+  const modelRef = primaryAgent.properties['model'] as string | undefined;
+  const modelResource = modelRef ? resources[modelRef] : undefined;
+
+  const card: Record<string, unknown> = {
+    name: (primaryAgent.properties['name'] as string) ?? primaryAgent.displayName,
+    description: (primaryAgent.properties['description'] as string) ?? '',
     version: '1.0.0',
     capabilities: {
       streaming: false,
       pushNotifications: false,
+      stateTransitionHistory: false,
     },
-    skills: tools.map((toolName) => ({
-      id: toolName,
-      name: toolName,
-      description: `Tool: ${toolName}`,
-    })),
+    skills,
   };
+
+  if (modelResource) {
+    card['provider'] = {
+      organization: modelResource.properties['provider'] as string,
+      model: modelResource.properties['modelId'] as string,
+    };
+  }
 
   return JSON.stringify(card, null, 2);
 }

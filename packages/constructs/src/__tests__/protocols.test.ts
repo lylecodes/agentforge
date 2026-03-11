@@ -240,13 +240,20 @@ describe('generateA2AAgentCard', () => {
     expect(card.version).toBe('1.0.0');
     expect(card.capabilities.streaming).toBe(false);
     expect(card.capabilities.pushNotifications).toBe(false);
+    expect(card.capabilities.stateTransitionHistory).toBe(false);
   });
 
-  it('includes tools as skills', () => {
+  it('includes tool resources as skills', () => {
     const agent = makeAgent({
-      properties: { name: 'Agent', tools: ['search', 'read'] },
+      properties: { name: 'Agent' },
+      dependencies: ['Stack/search', 'Stack/read'],
     });
-    const json = generateA2AAgentCard({ 'Stack/Agent': agent });
+    const resources: Record<string, AgentResource> = {
+      'Stack/Agent': agent,
+      'Stack/search': makeTool('search'),
+      'Stack/read': makeTool('read'),
+    };
+    const json = generateA2AAgentCard(resources);
     const card = JSON.parse(json!) as A2AAgentCard;
     expect(card.skills).toHaveLength(2);
     expect(card.skills[0]!.id).toBe('search');
@@ -261,6 +268,139 @@ describe('generateA2AAgentCard', () => {
     const json = generateA2AAgentCard({ 'Stack/Agent': agent });
     const card = JSON.parse(json!) as A2AAgentCard;
     expect(card.name).toBe('FallbackAgent');
+  });
+});
+
+describe('generateA2AAgentCard — full implementation', () => {
+  it('generates card with tools as skills including inputSchema', () => {
+    const resources: Record<string, AgentResource> = {
+      'Stack/Agent': {
+        type: 'agentforge::core::Agent',
+        id: 'Stack/Agent',
+        displayName: 'ResearchBot',
+        properties: {
+          name: 'researcher',
+          description: 'Researches topics',
+          tools: ['Stack/SearchTool'],
+        },
+        dependencies: ['Stack/Model', 'Stack/SearchTool'],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/SearchTool': {
+        type: 'agentforge::core::Tool',
+        id: 'Stack/SearchTool',
+        displayName: 'SearchTool',
+        properties: {
+          name: 'web_search',
+          description: 'Search the web for information',
+          inputSchema: {
+            type: 'object',
+            properties: { query: { type: 'string' } },
+            required: ['query'],
+          },
+        },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/Model': {
+        type: 'agentforge::core::Model',
+        id: 'Stack/Model',
+        displayName: 'Model',
+        properties: { provider: 'anthropic', modelId: 'claude-sonnet-4' },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+    };
+
+    const card = generateA2AAgentCard(resources);
+    expect(card).not.toBeNull();
+    const parsed = JSON.parse(card!);
+    expect(parsed.name).toBe('researcher');
+    expect(parsed.description).toBe('Researches topics');
+    expect(parsed.version).toBe('1.0.0');
+    expect(parsed.capabilities).toEqual({
+      streaming: false,
+      pushNotifications: false,
+      stateTransitionHistory: false,
+    });
+    expect(parsed.skills).toHaveLength(1);
+    expect(parsed.skills[0].id).toBe('web_search');
+    expect(parsed.skills[0].name).toBe('web_search');
+    expect(parsed.skills[0].description).toBe('Search the web for information');
+    expect(parsed.skills[0].inputSchema).toEqual({
+      type: 'object',
+      properties: { query: { type: 'string' } },
+      required: ['query'],
+    });
+  });
+
+  it('generates card for multi-agent assembly using first agent', () => {
+    const resources: Record<string, AgentResource> = {
+      'Stack/Agent1': {
+        type: 'agentforge::core::Agent',
+        id: 'Stack/Agent1',
+        displayName: 'Agent1',
+        properties: { name: 'first', description: 'First agent' },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/Agent2': {
+        type: 'agentforge::core::Agent',
+        id: 'Stack/Agent2',
+        displayName: 'Agent2',
+        properties: { name: 'second', description: 'Second agent' },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+    };
+
+    const card = generateA2AAgentCard(resources);
+    const parsed = JSON.parse(card!);
+    expect(parsed.name).toBe('first');
+    // Multi-agent: all agents listed as skills
+    expect(parsed.skills).toHaveLength(2);
+  });
+
+  it('includes model info in provider field when available', () => {
+    const resources: Record<string, AgentResource> = {
+      'Stack/Agent': {
+        type: 'agentforge::core::Agent',
+        id: 'Stack/Agent',
+        displayName: 'Agent',
+        properties: { name: 'bot', description: 'A bot', model: 'Stack/Model' },
+        dependencies: ['Stack/Model'],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/Model': {
+        type: 'agentforge::core::Model',
+        id: 'Stack/Model',
+        displayName: 'Model',
+        properties: { provider: 'anthropic', modelId: 'claude-sonnet-4' },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+    };
+
+    const card = generateA2AAgentCard(resources);
+    const parsed = JSON.parse(card!);
+    expect(parsed.provider).toEqual({
+      organization: 'anthropic',
+      model: 'claude-sonnet-4',
+    });
   });
 });
 
