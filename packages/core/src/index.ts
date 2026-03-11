@@ -75,6 +75,11 @@ export type {
 export { MCPServer } from './mcp-server.js';
 export type { MCPServerProps } from './mcp-server.js';
 
+// ─── Memory ─────────────────────────────────────────────────────────────────
+
+export { Memory, MemoryType } from './memory.js';
+export type { MemoryProps } from './memory.js';
+
 // ─── defineAgent (Tier 1 API) ───────────────────────────────────────────────
 
 export { defineAgent } from './define-agent.js';
