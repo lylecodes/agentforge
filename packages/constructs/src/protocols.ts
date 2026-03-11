@@ -218,8 +218,9 @@ export interface AgentSkillsManifest {
 /**
  * Generate an Agent Skills manifest JSON from agent resources.
  *
- * **Phase 2 stub** — returns a basic manifest structure. Full implementation
- * will extract input schemas and detailed skill descriptions from the assembly.
+ * Extracts tool information from Tool resources in the assembly, including
+ * input schemas as parameters. Deduplicates tools by name when the same
+ * tool is referenced by multiple agents.
  *
  * @param resources - All resources in the assembly.
  * @returns The Agent Skills manifest as a JSON string, or `null` if no agents found.
@@ -230,27 +231,43 @@ export function generateAgentSkillsManifest(
   const agents = Object.values(resources).filter(
     (r) => r.type === 'agentforge::core::Agent',
   );
+  if (agents.length === 0) return null;
 
-  if (agents.length === 0) {
-    return null;
+  const primaryAgent = agents[0]!;
+  const agentName = (primaryAgent.properties['name'] as string) ?? primaryAgent.displayName;
+  const agentDescription = (primaryAgent.properties['description'] as string) ?? '';
+
+  // Collect all tools, dedup by name
+  const tools = Object.values(resources).filter(
+    (r) => r.type === 'agentforge::core::Tool',
+  );
+  const seenNames = new Set<string>();
+  const skills: Array<Record<string, unknown>> = [];
+
+  for (const tool of tools) {
+    const toolName = (tool.properties['name'] as string) ?? tool.displayName;
+    if (seenNames.has(toolName)) continue;
+    seenNames.add(toolName);
+
+    const skill: Record<string, unknown> = {
+      name: toolName,
+    };
+    if (tool.properties['description']) {
+      skill['description'] = tool.properties['description'];
+    }
+    if (tool.properties['inputSchema']) {
+      skill['parameters'] = tool.properties['inputSchema'];
+    }
+    skills.push(skill);
   }
 
-  const agent = agents[0]!;
-  const name = (agent.properties['name'] as string) ?? agent.displayName;
-  const description = (agent.properties['description'] as string) ?? '';
-
-  const tools = resolveToolNames(agent, resources);
-
-  const manifest: AgentSkillsManifest = {
+  const manifest = {
     schema_version: '1.0',
-    name_for_human: name,
-    name_for_model: name.toLowerCase().replace(/\s+/g, '_'),
-    description_for_human: description,
-    description_for_model: description,
-    skills: tools.map((toolName) => ({
-      name: toolName,
-      description: `Tool: ${toolName}`,
-    })),
+    name_for_human: agentName,
+    name_for_model: agentName.replace(/\s+/g, '_').toLowerCase(),
+    description_for_human: agentDescription,
+    description_for_model: agentDescription,
+    skills,
   };
 
   return JSON.stringify(manifest, null, 2);

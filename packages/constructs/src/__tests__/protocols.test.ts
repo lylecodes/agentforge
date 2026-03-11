@@ -427,11 +427,16 @@ describe('generateAgentSkillsManifest', () => {
     expect(manifest.description_for_model).toBe('A helpful bot');
   });
 
-  it('includes tools as skills', () => {
+  it('includes tool resources as skills', () => {
     const agent = makeAgent({
-      properties: { name: 'Agent', tools: ['search'] },
+      properties: { name: 'Agent' },
+      dependencies: ['Stack/search'],
     });
-    const json = generateAgentSkillsManifest({ 'Stack/Agent': agent });
+    const resources: Record<string, AgentResource> = {
+      'Stack/Agent': agent,
+      'Stack/search': makeTool('search'),
+    };
+    const json = generateAgentSkillsManifest(resources);
     const manifest = JSON.parse(json!) as AgentSkillsManifest;
     expect(manifest.skills).toHaveLength(1);
     expect(manifest.skills[0]!.name).toBe('search');
@@ -444,5 +449,140 @@ describe('generateAgentSkillsManifest', () => {
     const json = generateAgentSkillsManifest({ 'Stack/Agent': agent });
     const manifest = JSON.parse(json!) as AgentSkillsManifest;
     expect(manifest.name_for_model).toBe('my_cool_agent');
+  });
+});
+
+describe('generateAgentSkillsManifest — full implementation', () => {
+  it('generates manifest with tool input schemas', () => {
+    const resources: Record<string, AgentResource> = {
+      'Stack/Agent': {
+        type: 'agentforge::core::Agent',
+        id: 'Stack/Agent',
+        displayName: 'Agent',
+        properties: {
+          name: 'My Agent',
+          description: 'A helpful agent',
+          tools: ['Stack/Tool'],
+        },
+        dependencies: ['Stack/Tool'],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/Tool': {
+        type: 'agentforge::core::Tool',
+        id: 'Stack/Tool',
+        displayName: 'Tool',
+        properties: {
+          name: 'calculator',
+          description: 'Performs math calculations',
+          inputSchema: {
+            type: 'object',
+            properties: { expression: { type: 'string' } },
+            required: ['expression'],
+          },
+        },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+    };
+
+    const manifest = generateAgentSkillsManifest(resources);
+    expect(manifest).not.toBeNull();
+    const parsed = JSON.parse(manifest!);
+    expect(parsed.schema_version).toBe('1.0');
+    expect(parsed.name_for_human).toBe('My Agent');
+    expect(parsed.name_for_model).toBe('my_agent');
+    expect(parsed.description_for_human).toBe('A helpful agent');
+    expect(parsed.description_for_model).toBe('A helpful agent');
+    expect(parsed.skills).toHaveLength(1);
+    expect(parsed.skills[0].name).toBe('calculator');
+    expect(parsed.skills[0].description).toBe('Performs math calculations');
+    expect(parsed.skills[0].parameters).toEqual({
+      type: 'object',
+      properties: { expression: { type: 'string' } },
+      required: ['expression'],
+    });
+  });
+
+  it('generates skills from multiple tools across agents', () => {
+    const resources: Record<string, AgentResource> = {
+      'Stack/Agent': {
+        type: 'agentforge::core::Agent',
+        id: 'Stack/Agent',
+        displayName: 'Agent',
+        properties: { name: 'bot', tools: ['Stack/T1', 'Stack/T2'] },
+        dependencies: ['Stack/T1', 'Stack/T2'],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/T1': {
+        type: 'agentforge::core::Tool',
+        id: 'Stack/T1',
+        displayName: 'T1',
+        properties: { name: 'search', description: 'Search' },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/T2': {
+        type: 'agentforge::core::Tool',
+        id: 'Stack/T2',
+        displayName: 'T2',
+        properties: { name: 'write', description: 'Write' },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+    };
+
+    const manifest = generateAgentSkillsManifest(resources);
+    const parsed = JSON.parse(manifest!);
+    expect(parsed.skills).toHaveLength(2);
+    expect(parsed.skills.map((s: { name: string }) => s.name)).toEqual(['search', 'write']);
+  });
+
+  it('deduplicates tool skills by name', () => {
+    const resources: Record<string, AgentResource> = {
+      'Stack/A1': {
+        type: 'agentforge::core::Agent',
+        id: 'Stack/A1',
+        displayName: 'A1',
+        properties: { name: 'bot1', tools: ['Stack/T'] },
+        dependencies: ['Stack/T'],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/A2': {
+        type: 'agentforge::core::Agent',
+        id: 'Stack/A2',
+        displayName: 'A2',
+        properties: { name: 'bot2', tools: ['Stack/T'] },
+        dependencies: ['Stack/T'],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+      'Stack/T': {
+        type: 'agentforge::core::Tool',
+        id: 'Stack/T',
+        displayName: 'T',
+        properties: { name: 'shared_tool', description: 'Shared' },
+        dependencies: [],
+        metadata: {},
+        secretRefs: [],
+        assetRefs: [],
+      },
+    };
+
+    const manifest = generateAgentSkillsManifest(resources);
+    const parsed = JSON.parse(manifest!);
+    expect(parsed.skills).toHaveLength(1);
   });
 });
