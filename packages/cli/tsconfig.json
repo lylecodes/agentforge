@@ -8,7 +8,8 @@
     { "path": "../constructs" },
     { "path": "../core" },
     { "path": "../state" },
-    { "path": "../target-local" }
+    { "path": "../target-local" },
+    { "path": "../target-docker" }
   ],
   "include": ["src"]
 }

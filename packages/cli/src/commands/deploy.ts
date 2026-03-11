@@ -14,6 +14,7 @@ import type { AgentAssembly } from '@agentforge/constructs';
 import { StateManager, hashResource } from '@agentforge/state';
 import type { StateResource } from '@agentforge/state';
 import { LocalTargetCompiler } from '@agentforge/target-local';
+import { DockerTargetCompiler } from '@agentforge/target-docker';
 import { loadConfig, resolveConfig } from '../config.js';
 import { findProjectRoot } from '../project.js';
 import { executeBuild } from './build.js';
@@ -140,10 +141,12 @@ function loadTargetCompiler(target: string): TargetCompiler {
   switch (target) {
     case 'local':
       return new LocalTargetCompiler() as unknown as TargetCompiler;
+    case 'docker':
+      return new DockerTargetCompiler() as unknown as TargetCompiler;
     default:
       throw new Error(
         `Unknown deployment target: '${target}'.\n` +
-        `Available targets: local\n` +
+        `Available targets: local, docker\n` +
         `Install additional targets with: npm install @agentforge/target-${target}`,
       );
   }

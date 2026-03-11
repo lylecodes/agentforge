@@ -38,6 +38,9 @@ importers:
       '@agentforge/state':
         specifier: workspace:*
         version: link:../state
+      '@agentforge/target-docker':
+        specifier: workspace:*
+        version: link:../target-docker
       '@agentforge/target-local':
         specifier: workspace:*
         version: link:../target-local
