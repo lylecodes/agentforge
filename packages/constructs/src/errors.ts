@@ -15,6 +15,7 @@
  * - AF300–AF399: Secret validation errors
  * - AF400–AF499: Target compilation errors
  * - AF500–AF599: State management errors
+ * - AF600–AF699: Composition validation errors
  *
  * @see Section 2.10 of the AgentForge roadmap.
  */
@@ -265,6 +266,95 @@ export function unsupportedResourceDiagnostic(
     message: `Target '${targetName}' does not support resource type '${resourceType}'.`,
     constructPath,
     suggestedFix: `Use a target that supports '${resourceType}', or remove the construct.`,
+    docsUrl: docsUrl(code),
+  };
+}
+
+// ─── Composition Errors (AF600–AF699) ───────────────────────────────────────
+
+/**
+ * Workflow step references an invalid agent.
+ */
+export function invalidWorkflowStepDiagnostic(
+  constructPath: string,
+  stepIndex: number,
+  detail: string,
+): AgentForgeDiagnostic {
+  const code = 'AF601';
+  return {
+    code,
+    severity: 'error',
+    message: `Workflow step ${stepIndex} is invalid: ${detail}`,
+    constructPath,
+    suggestedFix: 'Ensure every workflow step references a valid Agent construct.',
+    docsUrl: docsUrl(code),
+  };
+}
+
+/**
+ * Team has no members.
+ */
+export function emptyTeamDiagnostic(constructPath: string): AgentForgeDiagnostic {
+  const code = 'AF602';
+  return {
+    code,
+    severity: 'error',
+    message: 'Team has no members.',
+    constructPath,
+    suggestedFix: 'Add at least one member to the Team construct.',
+    docsUrl: docsUrl(code),
+  };
+}
+
+/**
+ * Router has no routes.
+ */
+export function emptyRouterDiagnostic(constructPath: string): AgentForgeDiagnostic {
+  const code = 'AF603';
+  return {
+    code,
+    severity: 'error',
+    message: 'Router has no routes.',
+    constructPath,
+    suggestedFix: 'Add at least one route to the Router construct.',
+    docsUrl: docsUrl(code),
+  };
+}
+
+/**
+ * Handoff missing source or target.
+ */
+export function invalidHandoffDiagnostic(
+  constructPath: string,
+  detail: string,
+): AgentForgeDiagnostic {
+  const code = 'AF604';
+  return {
+    code,
+    severity: 'error',
+    message: `Handoff is invalid: ${detail}`,
+    constructPath,
+    suggestedFix: 'Ensure handoff has both a valid source agent and target.',
+    docsUrl: docsUrl(code),
+  };
+}
+
+/**
+ * Schema mismatch between connected agents in a composition.
+ */
+export function schemaMismatchDiagnostic(
+  constructPath: string,
+  sourceAgent: string,
+  targetAgent: string,
+  detail: string,
+): AgentForgeDiagnostic {
+  const code = 'AF615';
+  return {
+    code,
+    severity: 'warning',
+    message: `Schema mismatch between '${sourceAgent}' and '${targetAgent}': ${detail}`,
+    constructPath,
+    suggestedFix: 'Add a dataMapping to the workflow step, or update agent schemas to be compatible.',
     docsUrl: docsUrl(code),
   };
 }

@@ -72,6 +72,11 @@ export {
   unresolvedTokenDiagnostic,
   assetNotFoundDiagnostic,
   unsupportedResourceDiagnostic,
+  invalidWorkflowStepDiagnostic,
+  emptyTeamDiagnostic,
+  emptyRouterDiagnostic,
+  invalidHandoffDiagnostic,
+  schemaMismatchDiagnostic,
 } from './errors.js';
 
 export type {
