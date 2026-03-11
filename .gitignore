@@ -1,0 +1,9 @@
+node_modules/
+dist/
+agentforge.out/
+.agentforge/
+*.tsbuildinfo
+.turbo/
+coverage/
+.env
+.env.local

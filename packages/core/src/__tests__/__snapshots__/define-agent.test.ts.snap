@@ -1,0 +1,180 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`defineAgent > build / assembly > assembly snapshot matches for a full agent 1`] = `
+{
+  "connections": [],
+  "parameters": {},
+  "resources": {
+    "App/FullAgent/Agent": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "Agent",
+      "id": "App/FullAgent/Agent",
+      "metadata": {},
+      "properties": {
+        "description": "A full agent with all options",
+        "mcpServers": [
+          "App/FullAgent/MCPServer0",
+        ],
+        "model": "App/FullAgent/Model",
+        "name": "full-agent",
+        "prompt": "App/FullAgent/Agent/Prompt",
+        "tools": [
+          "App/FullAgent/WebSearch",
+          "App/FullAgent/FileRead",
+        ],
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Agent",
+    },
+    "App/FullAgent/Agent/Prompt": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "Prompt",
+      "id": "App/FullAgent/Agent/Prompt",
+      "metadata": {},
+      "properties": {
+        "content": "You are a full-featured agent.",
+        "role": "system",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Prompt",
+    },
+    "App/FullAgent/FileRead": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "FileRead",
+      "id": "App/FullAgent/FileRead",
+      "metadata": {},
+      "properties": {
+        "description": "Read files",
+        "handler": {
+          "export": "handler",
+          "file": "./tools/read.ts",
+          "type": "file",
+        },
+        "name": "file_read",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Tool",
+    },
+    "App/FullAgent/MCPServer0": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "MCPServer0",
+      "id": "App/FullAgent/MCPServer0",
+      "metadata": {},
+      "properties": {
+        "args": [
+          "-y",
+          "@mcp/server-filesystem",
+          "./workspace",
+        ],
+        "command": "npx",
+        "tools": [
+          "read_file",
+          "write_file",
+        ],
+        "transport": "stdio",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::MCPServer",
+    },
+    "App/FullAgent/Model": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "Model",
+      "id": "App/FullAgent/Model",
+      "metadata": {},
+      "properties": {
+        "apiKey": {
+          "__agentforge_secret_ref__": true,
+          "source": {
+            "type": "env",
+            "variableName": "ANTHROPIC_API_KEY",
+          },
+        },
+        "modelId": "claude-sonnet-4",
+        "provider": "anthropic",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Model",
+    },
+    "App/FullAgent/WebSearch": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "WebSearch",
+      "id": "App/FullAgent/WebSearch",
+      "metadata": {},
+      "properties": {
+        "description": "Search the web",
+        "handler": {
+          "extractionPending": true,
+          "type": "inline",
+        },
+        "name": "web_search",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Tool",
+    },
+  },
+  "version": "0.1.0",
+}
+`;
+
+exports[`defineAgent > build / assembly > assembly snapshot matches for a minimal agent 1`] = `
+{
+  "connections": [],
+  "parameters": {},
+  "resources": {
+    "App/SimpleAgent/Agent": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "Agent",
+      "id": "App/SimpleAgent/Agent",
+      "metadata": {},
+      "properties": {
+        "model": "App/SimpleAgent/Model",
+        "name": "simple-agent",
+        "prompt": "App/SimpleAgent/Agent/Prompt",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Agent",
+    },
+    "App/SimpleAgent/Agent/Prompt": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "Prompt",
+      "id": "App/SimpleAgent/Agent/Prompt",
+      "metadata": {},
+      "properties": {
+        "content": "You are helpful.",
+        "role": "system",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Prompt",
+    },
+    "App/SimpleAgent/Model": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "Model",
+      "id": "App/SimpleAgent/Model",
+      "metadata": {},
+      "properties": {
+        "apiKey": {
+          "__agentforge_secret_ref__": true,
+          "source": {
+            "type": "env",
+            "variableName": "ANTHROPIC_API_KEY",
+          },
+        },
+        "modelId": "claude-sonnet-4",
+        "provider": "anthropic",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Model",
+    },
+  },
+  "version": "0.1.0",
+}
+`;

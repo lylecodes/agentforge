@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Assembly snapshot > matches expected assembly shape 1`] = `
+{
+  "connections": [],
+  "metadata": {
+    "agentforgeVersion": "0.1.0",
+    "assemblyHash": "<HASH>",
+    "intendedTargets": [
+      "local",
+    ],
+    "stackName": "TestStack",
+    "synthesizedAt": "<TIMESTAMP>",
+  },
+  "parameters": {},
+  "protocols": {
+    "agentsMd": {
+      "contentHash": "<HASH>",
+      "path": "protocols/AGENTS.md",
+    },
+  },
+  "resources": {
+    "App/TestStack/Claude": {
+      "assetRefs": [],
+      "dependencies": [],
+      "displayName": "claude-sonnet-4",
+      "id": "App/TestStack/Claude",
+      "metadata": {},
+      "properties": {
+        "modelId": "claude-sonnet-4",
+        "provider": "anthropic",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Model",
+    },
+    "App/TestStack/MyAgent": {
+      "assetRefs": [],
+      "dependencies": [
+        "App/TestStack/Claude",
+      ],
+      "displayName": "ResearchBot",
+      "id": "App/TestStack/MyAgent",
+      "metadata": {},
+      "properties": {
+        "description": "A research assistant",
+        "name": "ResearchBot",
+      },
+      "secretRefs": [],
+      "type": "agentforge::core::Agent",
+    },
+  },
+  "version": "0.1.0",
+}
+`;

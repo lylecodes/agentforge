@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Agent > resolveProperties > matches snapshot for a fully-wired agent 1`] = `
+{
+  "config": {
+    "maxRetries": 3,
+  },
+  "description": "Assists with research tasks",
+  "mcpServers": [
+    "App/TestStack/FS",
+  ],
+  "model": "App/TestStack/Claude",
+  "name": "research-assistant",
+  "prompt": "App/TestStack/System",
+  "tools": [
+    "App/TestStack/Search",
+    "App/TestStack/Write",
+  ],
+}
+`;

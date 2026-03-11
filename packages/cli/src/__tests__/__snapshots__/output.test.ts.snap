@@ -1,0 +1,48 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`formatDiff > snapshot: full empty diff output 1`] = `
+"AgentForge Preview — 0 to add, 0 to change, 0 to destroy.
+
+  No changes. Infrastructure is up-to-date."
+`;
+
+exports[`formatDiff > snapshot: mixed diff output 1`] = `
+"AgentForge Preview — 1 to add, 1 to change, 1 to destroy.
+
+  + agentforge::core::Agent             Stack/Agent1
+  ~ agentforge::core::Tool              Stack/Tool1
+      (properties changed)
+  - agentforge::core::Model             Stack/Model1"
+`;
+
+exports[`formatError > snapshot: full error diagnostic 1`] = `
+"Error AF001: Missing required property 'model' on Agent 'MyStack/MyAgent'.
+  at MyStack/MyAgent (properties.model)
+  Fix: Add the 'model' property when constructing Agent.
+  Docs: https://agentforge.dev/docs/errors/AF001"
+`;
+
+exports[`formatError > snapshot: info diagnostic 1`] = `
+"Info AF500: State file version mismatch.
+  at global
+  Fix: Run migration.
+  Docs: https://agentforge.dev/docs/errors/AF500"
+`;
+
+exports[`formatError > snapshot: warning diagnostic without property path 1`] = `
+"Warning AF201: Target 'local' does not support 'Webhook'.
+  at Stack/Webhook
+  Fix: Use a different target.
+  Docs: https://agentforge.dev/docs/errors/AF201"
+`;
+
+exports[`formatStatus > snapshot: status with resources and outputs 1`] = `
+"AgentForge Status — target: local
+
+  Type                                ID                             Status       Last Deployed
+  ─────────────────────────────────── ────────────────────────────── ──────────── ────────────────────
+  agentforge::core::Agent             Stack/Agent                    deployed     6/15/2025, 3:30:00 AM
+    endpoint: http://localhost:3000
+
+  1 resource deployed."
+`;

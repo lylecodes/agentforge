@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Prompt > resolveProperties > matches snapshot for a fully-specified prompt 1`] = `
+{
+  "content": "You are an expert in {domain}.",
+  "fewShotExamples": [
+    {
+      "assistant": "Artificial intelligence.",
+      "user": "What is AI?",
+    },
+  ],
+  "role": "system",
+  "variables": {
+    "domain": "technology",
+  },
+}
+`;
+
+exports[`Prompt > resolveProperties > matches snapshot for an asset-backed prompt 1`] = `
+{
+  "content": {
+    "__agentforge_asset_ref__": true,
+    "assetType": "prompt_file",
+    "filePath": "./prompts/research.md",
+  },
+  "role": "system",
+  "variables": {
+    "domain": "science",
+  },
+}
+`;

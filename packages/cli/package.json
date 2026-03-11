@@ -1,0 +1,31 @@
+{
+  "name": "@agentforge/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "agentforge": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@agentforge/constructs": "workspace:*",
+    "@agentforge/core": "workspace:*",
+    "@agentforge/state": "workspace:*",
+    "@agentforge/target-local": "workspace:*",
+    "commander": "^13.0.0",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

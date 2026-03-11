@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Model > resolveProperties > matches snapshot for a fully-specified model 1`] = `
+{
+  "apiKey": {
+    "__agentforge_secret_ref__": true,
+    "source": {
+      "type": "env",
+      "variableName": "ANTHROPIC_API_KEY",
+    },
+  },
+  "fallback": "App/TestStack/Fallback",
+  "maxTokens": 4096,
+  "modelId": "claude-sonnet-4",
+  "provider": "anthropic",
+  "temperature": 0.7,
+}
+`;

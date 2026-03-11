@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MCPServer > resolveProperties > matches snapshot for a fully-specified MCP server 1`] = `
+{
+  "args": [
+    "-y",
+    "@modelcontextprotocol/server-filesystem",
+    "./workspace",
+  ],
+  "command": "npx",
+  "env": {
+    "API_KEY": {
+      "__agentforge_secret_ref__": true,
+      "source": {
+        "type": "env",
+        "variableName": "FS_API_KEY",
+      },
+    },
+    "NODE_ENV": "production",
+  },
+  "tools": [
+    "read_file",
+    "write_file",
+    "list_directory",
+  ],
+  "transport": "stdio",
+}
+`;
