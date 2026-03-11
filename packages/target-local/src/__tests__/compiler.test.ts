@@ -148,7 +148,11 @@ describe('LocalTargetCompiler metadata', () => {
     expect(types).toContain('agentforge::core::Tool');
     expect(types).toContain('agentforge::core::Prompt');
     expect(types).toContain('agentforge::core::MCPServer');
-    expect(types).toHaveLength(5);
+    expect(types).toContain('agentforge::composition::Workflow');
+    expect(types).toContain('agentforge::composition::Team');
+    expect(types).toContain('agentforge::composition::Router');
+    expect(types).toContain('agentforge::composition::Handoff');
+    expect(types).toHaveLength(9);
   });
 
   it('returns a new array each time (no shared state)', () => {
@@ -214,20 +218,20 @@ describe('validate', () => {
     const assembly = makeAssembly({
       resources: {
         'TestStack/MyAgent': makeAgent(),
-        'TestStack/Workflow': {
-          type: 'agentforge::composition::Workflow',
-          id: 'TestStack/Workflow',
-          displayName: 'Workflow',
+        'TestStack/GuardRail': {
+          type: 'agentforge::governance::Guardrail',
+          id: 'TestStack/GuardRail',
+          displayName: 'GuardRail',
           properties: {},
           dependencies: [],
           metadata: {},
           secretRefs: [],
           assetRefs: [],
         },
-        'TestStack/GuardRail': {
-          type: 'agentforge::governance::Guardrail',
-          id: 'TestStack/GuardRail',
-          displayName: 'GuardRail',
+        'TestStack/Policy': {
+          type: 'agentforge::governance::Policy',
+          id: 'TestStack/Policy',
+          displayName: 'Policy',
           properties: {},
           dependencies: [],
           metadata: {},
@@ -243,8 +247,8 @@ describe('validate', () => {
     expect(result.warnings.length).toBeGreaterThanOrEqual(2);
 
     const warningTypes = result.warnings.join(' ');
-    expect(warningTypes).toContain('agentforge::composition::Workflow');
     expect(warningTypes).toContain('agentforge::governance::Guardrail');
+    expect(warningTypes).toContain('agentforge::governance::Policy');
     expect(warningTypes).toContain('not supported');
     expect(warningTypes).toContain('will be skipped');
   });
@@ -313,10 +317,10 @@ describe('validate', () => {
     // No agents (error) + unsupported type (warning)
     const assembly = makeAssembly({
       resources: {
-        'TestStack/Workflow': {
-          type: 'agentforge::composition::Workflow',
-          id: 'TestStack/Workflow',
-          displayName: 'Workflow',
+        'TestStack/GuardRail': {
+          type: 'agentforge::governance::Guardrail',
+          id: 'TestStack/GuardRail',
+          displayName: 'GuardRail',
           properties: {},
           dependencies: [],
           metadata: {},
@@ -337,20 +341,20 @@ describe('validate', () => {
     const assembly = makeAssembly({
       resources: {
         'TestStack/MyAgent': makeAgent(),
-        'TestStack/W1': {
-          type: 'agentforge::composition::Workflow',
-          id: 'TestStack/W1',
-          displayName: 'W1',
+        'TestStack/G1': {
+          type: 'agentforge::governance::Guardrail',
+          id: 'TestStack/G1',
+          displayName: 'G1',
           properties: {},
           dependencies: [],
           metadata: {},
           secretRefs: [],
           assetRefs: [],
         },
-        'TestStack/W2': {
-          type: 'agentforge::composition::Workflow',
-          id: 'TestStack/W2',
-          displayName: 'W2',
+        'TestStack/G2': {
+          type: 'agentforge::governance::Guardrail',
+          id: 'TestStack/G2',
+          displayName: 'G2',
           properties: {},
           dependencies: [],
           metadata: {},
@@ -362,10 +366,67 @@ describe('validate', () => {
 
     const result = compiler.validate(assembly);
 
-    const workflowWarnings = result.warnings.filter(w =>
-      w.includes('agentforge::composition::Workflow'),
+    const guardrailWarnings = result.warnings.filter(w =>
+      w.includes('agentforge::governance::Guardrail'),
     );
-    expect(workflowWarnings).toHaveLength(1);
+    expect(guardrailWarnings).toHaveLength(1);
+  });
+
+  it('does not warn about composition resource types (Workflow, Team, Router, Handoff)', () => {
+    const assembly = makeAssembly({
+      resources: {
+        'TestStack/MyAgent': makeAgent(),
+        'TestStack/Claude': makeModel(),
+        'TestStack/Workflow': {
+          type: 'agentforge::composition::Workflow',
+          id: 'TestStack/Workflow',
+          displayName: 'Workflow',
+          properties: {},
+          dependencies: [],
+          metadata: {},
+          secretRefs: [],
+          assetRefs: [],
+        },
+        'TestStack/Team': {
+          type: 'agentforge::composition::Team',
+          id: 'TestStack/Team',
+          displayName: 'Team',
+          properties: {},
+          dependencies: [],
+          metadata: {},
+          secretRefs: [],
+          assetRefs: [],
+        },
+        'TestStack/Router': {
+          type: 'agentforge::composition::Router',
+          id: 'TestStack/Router',
+          displayName: 'Router',
+          properties: {},
+          dependencies: [],
+          metadata: {},
+          secretRefs: [],
+          assetRefs: [],
+        },
+        'TestStack/Handoff': {
+          type: 'agentforge::composition::Handoff',
+          id: 'TestStack/Handoff',
+          displayName: 'Handoff',
+          properties: {},
+          dependencies: [],
+          metadata: {},
+          secretRefs: [],
+          assetRefs: [],
+        },
+      },
+      connections: [
+        { id: 'c1', source: 'TestStack/Claude', target: 'TestStack/MyAgent', type: 'model_binding' },
+      ],
+    });
+
+    const result = compiler.validate(assembly);
+
+    expect(result.valid).toBe(true);
+    expect(result.warnings).toHaveLength(0);
   });
 });
 
@@ -573,10 +634,10 @@ describe('compile', () => {
     const assembly = makeAssembly({
       resources: {
         'TestStack/MyAgent': makeAgent(),
-        'TestStack/Workflow': {
-          type: 'agentforge::composition::Workflow',
-          id: 'TestStack/Workflow',
-          displayName: 'Workflow',
+        'TestStack/GuardRail': {
+          type: 'agentforge::governance::Guardrail',
+          id: 'TestStack/GuardRail',
+          displayName: 'GuardRail',
           properties: {},
           dependencies: [],
           metadata: {},
@@ -588,7 +649,7 @@ describe('compile', () => {
 
     const result = compiler.compile(assembly, tempDir);
 
-    expect(result.unsupportedResources).toContain('agentforge::composition::Workflow');
+    expect(result.unsupportedResources).toContain('agentforge::governance::Guardrail');
   });
 
   it('returns empty unsupported list when all types are supported', () => {
@@ -744,20 +805,20 @@ describe('compile', () => {
     const assembly = makeAssembly({
       resources: {
         'TestStack/MyAgent': makeAgent(),
-        'TestStack/W1': {
-          type: 'agentforge::composition::Workflow',
-          id: 'TestStack/W1',
-          displayName: 'W1',
+        'TestStack/G1': {
+          type: 'agentforge::governance::Guardrail',
+          id: 'TestStack/G1',
+          displayName: 'G1',
           properties: {},
           dependencies: [],
           metadata: {},
           secretRefs: [],
           assetRefs: [],
         },
-        'TestStack/W2': {
-          type: 'agentforge::composition::Workflow',
-          id: 'TestStack/W2',
-          displayName: 'W2',
+        'TestStack/G2': {
+          type: 'agentforge::governance::Guardrail',
+          id: 'TestStack/G2',
+          displayName: 'G2',
           properties: {},
           dependencies: [],
           metadata: {},
@@ -769,10 +830,63 @@ describe('compile', () => {
 
     const result = compiler.compile(assembly, tempDir);
 
-    const workflowEntries = result.unsupportedResources.filter(
-      t => t === 'agentforge::composition::Workflow',
+    const guardrailEntries = result.unsupportedResources.filter(
+      t => t === 'agentforge::governance::Guardrail',
     );
-    expect(workflowEntries).toHaveLength(1);
+    expect(guardrailEntries).toHaveLength(1);
+  });
+
+  it('does not track composition resource types as unsupported', () => {
+    const assembly = makeAssembly({
+      resources: {
+        'TestStack/MyAgent': makeAgent(),
+        'TestStack/Workflow': {
+          type: 'agentforge::composition::Workflow',
+          id: 'TestStack/Workflow',
+          displayName: 'Workflow',
+          properties: {},
+          dependencies: [],
+          metadata: {},
+          secretRefs: [],
+          assetRefs: [],
+        },
+        'TestStack/Team': {
+          type: 'agentforge::composition::Team',
+          id: 'TestStack/Team',
+          displayName: 'Team',
+          properties: {},
+          dependencies: [],
+          metadata: {},
+          secretRefs: [],
+          assetRefs: [],
+        },
+        'TestStack/Router': {
+          type: 'agentforge::composition::Router',
+          id: 'TestStack/Router',
+          displayName: 'Router',
+          properties: {},
+          dependencies: [],
+          metadata: {},
+          secretRefs: [],
+          assetRefs: [],
+        },
+        'TestStack/Handoff': {
+          type: 'agentforge::composition::Handoff',
+          id: 'TestStack/Handoff',
+          displayName: 'Handoff',
+          properties: {},
+          dependencies: [],
+          metadata: {},
+          secretRefs: [],
+          assetRefs: [],
+        },
+      },
+    });
+
+    const result = compiler.compile(assembly, tempDir);
+
+    expect(result.unsupportedResources).toHaveLength(0);
+    expect(result.warnings).toHaveLength(0);
   });
 
   it('handles compile with no agents (still produces structure)', () => {

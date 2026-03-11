@@ -42,6 +42,10 @@ const SUPPORTED_RESOURCE_TYPES = [
   'agentforge::core::Tool',
   'agentforge::core::Prompt',
   'agentforge::core::MCPServer',
+  'agentforge::composition::Workflow',
+  'agentforge::composition::Team',
+  'agentforge::composition::Router',
+  'agentforge::composition::Handoff',
 ] as const;
 
 const SUPPORTED_SET = new Set<string>(SUPPORTED_RESOURCE_TYPES);
