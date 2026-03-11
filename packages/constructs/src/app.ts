@@ -20,7 +20,7 @@ import { TokenMap, resolveTokens, resolveValue } from './tokens.js';
 import { AgentForgeError } from './errors.js';
 import type { ValidationResult } from './validation.js';
 import { toValidationResult, mergeValidationResults } from './validation.js';
-import { generateAgentsMd } from './protocols.js';
+import { generateAgentsMd, generateA2AAgentCard, generateAgentSkillsManifest } from './protocols.js';
 import { Aspects } from './aspects.js';
 
 // ─── App Props ──────────────────────────────────────────────────────────────
@@ -268,12 +268,34 @@ export class App extends RootConstruct {
       .update(agentsMdContent)
       .digest('hex');
 
-    return {
+    const result: ProtocolArtifacts = {
       agentsMd: {
         path: 'protocols/AGENTS.md',
         contentHash: agentsMdHash,
       },
     };
+
+    // Generate A2A Agent Card
+    const a2aContent = generateA2AAgentCard(resources);
+    if (a2aContent) {
+      const a2aHash = createHash('sha256').update(a2aContent).digest('hex');
+      (result as Record<string, unknown>).a2aAgentCard = {
+        path: 'protocols/a2a-agent-card.json',
+        contentHash: a2aHash,
+      };
+    }
+
+    // Generate Agent Skills manifest
+    const skillsContent = generateAgentSkillsManifest(resources);
+    if (skillsContent) {
+      const skillsHash = createHash('sha256').update(skillsContent).digest('hex');
+      (result as Record<string, unknown>).agentSkills = {
+        path: 'protocols/agent-skills.json',
+        contentHash: skillsHash,
+      };
+    }
+
+    return result;
   }
 
   // ─── Output Writing ───────────────────────────────────────────────────
@@ -289,9 +311,10 @@ export class App extends RootConstruct {
     const assemblyPath = join(stackDir, 'assembly.json');
     writeFileSync(assemblyPath, JSON.stringify(assembly, null, 2), 'utf-8');
 
+    const protocolsDir = join(stackDir, 'protocols');
+
     // Write AGENTS.md if generated
     if (assembly.protocols.agentsMd) {
-      const protocolsDir = join(stackDir, 'protocols');
       mkdirSync(protocolsDir, { recursive: true });
       const agentsMdContent = generateAgentsMd(assembly.resources);
       writeFileSync(
@@ -299,6 +322,32 @@ export class App extends RootConstruct {
         agentsMdContent,
         'utf-8',
       );
+    }
+
+    // Write A2A Agent Card if generated
+    if (assembly.protocols.a2aAgentCard) {
+      mkdirSync(protocolsDir, { recursive: true });
+      const a2aContent = generateA2AAgentCard(assembly.resources);
+      if (a2aContent) {
+        writeFileSync(
+          join(protocolsDir, 'a2a-agent-card.json'),
+          a2aContent,
+          'utf-8',
+        );
+      }
+    }
+
+    // Write Agent Skills manifest if generated
+    if (assembly.protocols.agentSkills) {
+      mkdirSync(protocolsDir, { recursive: true });
+      const skillsContent = generateAgentSkillsManifest(assembly.resources);
+      if (skillsContent) {
+        writeFileSync(
+          join(protocolsDir, 'agent-skills.json'),
+          skillsContent,
+          'utf-8',
+        );
+      }
     }
   }
 

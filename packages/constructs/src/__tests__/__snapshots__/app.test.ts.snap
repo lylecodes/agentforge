@@ -14,6 +14,14 @@ exports[`Assembly snapshot > matches expected assembly shape 1`] = `
   },
   "parameters": {},
   "protocols": {
+    "a2aAgentCard": {
+      "contentHash": "<HASH>",
+      "path": "protocols/a2a-agent-card.json",
+    },
+    "agentSkills": {
+      "contentHash": "<HASH>",
+      "path": "protocols/agent-skills.json",
+    },
     "agentsMd": {
       "contentHash": "<HASH>",
       "path": "protocols/AGENTS.md",

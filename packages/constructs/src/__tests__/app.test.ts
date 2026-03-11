@@ -1,5 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Construct } from 'constructs';
+import { existsSync, readFileSync, rmSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { App } from '../app.js';
 import { Stack } from '../stack.js';
 import { AgentResourceBase } from '../resource.js';
@@ -25,6 +28,15 @@ class TestModel extends AgentResourceBase {
     super(scope, id, 'agentforge::core::Model', props.modelId);
     this.addProperty('provider', props.provider);
     this.addProperty('modelId', props.modelId);
+  }
+}
+
+class TestTool extends AgentResourceBase {
+  constructor(scope: Construct, id: string, props: { name: string; description?: string; inputSchema?: Record<string, unknown> }) {
+    super(scope, id, 'agentforge::core::Tool', props.name);
+    this.addProperty('name', props.name);
+    if (props.description) this.addProperty('description', props.description);
+    if (props.inputSchema) this.addProperty('inputSchema', props.inputSchema);
   }
 }
 
@@ -248,9 +260,75 @@ describe('Assembly snapshot', () => {
         agentsMd: assembly.protocols.agentsMd
           ? { ...assembly.protocols.agentsMd, contentHash: '<HASH>' }
           : undefined,
+        a2aAgentCard: assembly.protocols.a2aAgentCard
+          ? { ...assembly.protocols.a2aAgentCard, contentHash: '<HASH>' }
+          : undefined,
+        agentSkills: assembly.protocols.agentSkills
+          ? { ...assembly.protocols.agentSkills, contentHash: '<HASH>' }
+          : undefined,
       },
     };
 
     expect(normalized).toMatchSnapshot();
+  });
+});
+
+// ─── Protocol artifacts written to disk ──────────────────────────────────────
+
+describe('Protocol artifact file output', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = join(tmpdir(), `agentforge-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(tmpDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('writes A2A agent card to protocols directory', () => {
+    const app = new App({ outdir: tmpDir });
+    const stack = new Stack(app, 'Test');
+    const agent = new TestAgent(stack, 'Agent', {
+      name: 'test-agent',
+      description: 'A test agent',
+    });
+    new TestTool(stack, 'Tool', { name: 'my_tool', description: 'A tool' });
+
+    app.build({ writeOutput: true });
+    const a2aPath = join(tmpDir, 'stacks', 'Test', 'protocols', 'a2a-agent-card.json');
+    expect(existsSync(a2aPath)).toBe(true);
+    const card = JSON.parse(readFileSync(a2aPath, 'utf-8'));
+    expect(card.name).toBe('test-agent');
+  });
+
+  it('writes Agent Skills manifest to protocols directory', () => {
+    const app = new App({ outdir: tmpDir });
+    const stack = new Stack(app, 'Test');
+    new TestAgent(stack, 'Agent', { name: 'test-agent' });
+    new TestTool(stack, 'Tool', { name: 'my_tool' });
+
+    app.build({ writeOutput: true });
+    const skillsPath = join(tmpDir, 'stacks', 'Test', 'protocols', 'agent-skills.json');
+    expect(existsSync(skillsPath)).toBe(true);
+    const manifest = JSON.parse(readFileSync(skillsPath, 'utf-8'));
+    expect(manifest.schema_version).toBe('1.0');
+  });
+
+  it('includes A2A and Skills refs in assembly protocols metadata', () => {
+    const app = new App({ outdir: tmpDir });
+    const stack = new Stack(app, 'Test');
+    new TestAgent(stack, 'Agent', { name: 'test-agent', description: 'Test' });
+    new TestTool(stack, 'Tool', { name: 'my_tool' });
+
+    const result = app.build({ writeOutput: true });
+    const protocols = result.stacks.Test!.protocols;
+    expect(protocols.a2aAgentCard).toBeDefined();
+    expect(protocols.a2aAgentCard!.path).toBe('protocols/a2a-agent-card.json');
+    expect(protocols.a2aAgentCard!.contentHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(protocols.agentSkills).toBeDefined();
+    expect(protocols.agentSkills!.path).toBe('protocols/agent-skills.json');
+    expect(protocols.agentSkills!.contentHash).toMatch(/^[a-f0-9]{64}$/);
   });
 });
