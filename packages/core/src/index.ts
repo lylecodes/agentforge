@@ -80,6 +80,11 @@ export type { MCPServerProps } from './mcp-server.js';
 export { Memory, MemoryType } from './memory.js';
 export type { MemoryProps } from './memory.js';
 
+// ─── Schema ─────────────────────────────────────────────────────────────────
+
+export { Schema, SchemaFormat } from './schema.js';
+export type { SchemaProps } from './schema.js';
+
 // ─── defineAgent (Tier 1 API) ───────────────────────────────────────────────
 
 export { defineAgent } from './define-agent.js';
