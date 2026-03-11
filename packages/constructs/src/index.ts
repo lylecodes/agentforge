@@ -140,6 +140,17 @@ export {
 
 export type { IAspect } from './aspects.js';
 
+// ─── Target Compiler ────────────────────────────────────────────────────────
+
+export type {
+  ITargetCompiler,
+  TargetValidationResult,
+  CompileResult,
+  Artifact,
+  DeployOptions,
+  DeployResult,
+} from './target.js';
+
 // ─── Protocols ──────────────────────────────────────────────────────────────
 
 export {
