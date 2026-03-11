@@ -10,7 +10,7 @@ Full technical architecture: [roadmap-v2.md](../research/agents-as-code/roadmap-
 
 - [x] Phase 1 — Foundation + Core + Local Target
 - [x] Phase 2 — Docker Target + Protocol Artifacts
-- [ ] Phase 3 — Composition
+- [x] Phase 3 — Composition
 - [ ] Phase 4 — Governance + Full State
 - [ ] Phase 5 — Data + Integration
 - [ ] Phase 6 — Advanced Targets
@@ -49,18 +49,18 @@ Full technical architecture: [roadmap-v2.md](../research/agents-as-code/roadmap-
 
 ---
 
-## Phase 3: Composition
+## Phase 3: Composition [COMPLETE]
 
-Multi-agent systems — workflows, teams, routing, handoffs.
+7 packages, 724 tests. Multi-agent composition with 4 construct types.
 
-- [ ] **`@agentforge/composition` package**
-  - [ ] **Workflow** — sequential/parallel multi-step agent pipelines, error handling (retry/skip/abort)
-  - [ ] **Team** — agent groups with orchestration strategies (hierarchical/collaborative/sequential)
-  - [ ] **Router** — conditional dispatch (rule-based or LLM-based) with default routes
-  - [ ] **Handoff** — agent-to-agent or agent-to-human transfer with context transfer
-- [ ] **Connection resources in assembly IR** — explicit edges with data mapping, turning the IR into a proper graph
+- [x] **`@agentforge/composition` package**
+  - [x] **Workflow** — sequential/parallel multi-step agent pipelines, error handling (retry/skip/abort)
+  - [x] **Team** — agent groups with orchestration strategies (hierarchical/collaborative/sequential)
+  - [x] **Router** — conditional dispatch (rule-based or LLM-based) with default routes
+  - [x] **Handoff** — agent-to-agent or agent-to-human transfer with context transfer
+- [x] **Connection resources in assembly IR** — explicit edges with data mapping, turning the IR into a proper graph
 - [ ] **`agentforge import`** — import existing agents from CrewAI YAML, LangGraph, Mastra configs
-- [ ] Update LocalTarget + DockerTarget to compile composition constructs
+- [x] Update LocalTarget + DockerTarget to compile composition constructs
 
 **Demo:** 3-agent content pipeline (researcher -> writer -> editor) with routing and handoffs.
 

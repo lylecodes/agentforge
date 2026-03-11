@@ -36,7 +36,7 @@ packages/
 
 ```bash
 pnpm turbo build          # Build all packages
-pnpm turbo test           # Run all 564 tests
+pnpm turbo test           # Run all 724 tests
 pnpm turbo typecheck      # Type-check without emitting
 pnpm -F @agentforge/core test  # Test single package
 ```

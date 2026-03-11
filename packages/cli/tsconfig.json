@@ -7,6 +7,7 @@
   "references": [
     { "path": "../constructs" },
     { "path": "../core" },
+    { "path": "../composition" },
     { "path": "../state" },
     { "path": "../target-local" },
     { "path": "../target-docker" }
